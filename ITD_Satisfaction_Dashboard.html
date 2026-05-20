@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ITD Stakeholder Satisfaction Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #1a5fa8;
+    --brand-light: #e8f1fb;
+    --brand-dark: #0d3d6e;
+    --accent: #f0a500;
+    --success: #0e7c4a;
+    --success-bg: #e6f6ee;
+    --danger: #c0392b;
+    --danger-bg: #fdecea;
+    --warning: #b45309;
+    --warning-bg: #fef3c7;
+    --surface: #ffffff;
+    --surface2: #f7f9fc;
+    --border: #e2e8f0;
+    --text: #1a202c;
+    --text2: #4a5568;
+    --text3: #718096;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface2);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--brand-dark);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: white;
+    letter-spacing: -.3px;
+  }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,.55); margin-top: 1px; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .quarter-badge {
+    background: var(--accent);
+    color: #000;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-family: 'DM Mono', monospace;
+  }
+  .btn-refresh {
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+    color: white;
+    padding: 6px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    transition: background .15s;
+  }
+  .btn-refresh:hover { background: rgba(255,255,255,.2); }
+
+  /* LOADING */
+  #loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 64px);
+    gap: 16px;
+  }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--brand);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: var(--text2); font-size: 14px; }
+
+  /* ERROR */
+  #error-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 64px);
+    gap: 12px;
+    padding: 32px;
+    text-align: center;
+  }
+  .error-icon { font-size: 48px; }
+  .error-title { font-size: 20px; font-weight: 600; color: var(--danger); }
+  .error-msg { color: var(--text2); max-width: 480px; line-height: 1.6; }
+  .error-detail {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    color: var(--text2);
+    max-width: 600px;
+    text-align: left;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  /* MAIN */
+  #main { display: none; padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+  /* FILTERS */
+  .filters {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .filter-label { font-size: 13px; color: var(--text2); font-weight: 500; }
+  select, .filter-select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 7px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    outline: none;
+  }
+  select:focus { border-color: var(--brand); }
+
+  /* METRICS */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .metric::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--brand);
+  }
+  .metric.danger::before { background: var(--danger); }
+  .metric.success::before { background: var(--success); }
+  .metric.accent::before { background: var(--accent); }
+  .metric-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; font-weight: 500; margin-bottom: 8px; }
+  .metric-value { font-family: 'DM Serif Display', serif; font-size: 36px; color: var(--text); line-height: 1; }
+  .metric-sub { font-size: 12px; color: var(--text3); margin-top: 6px; }
+  .metric-change { font-size: 12px; margin-top: 4px; }
+  .change-up { color: var(--success); }
+  .change-dn { color: var(--danger); }
+
+  /* GRID */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid3 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); text-transform: uppercase; letter-spacing: .05em; }
+  .card-body { padding: 20px; }
+
+  /* CHARTS */
+  canvas { display: block; }
+
+  /* PM TABLE */
+  .pm-table { width: 100%; border-collapse: collapse; }
+  .pm-table th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--text3);
+    font-weight: 500;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .pm-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .pm-table tr:last-child td { border-bottom: none; }
+  .pm-table tr { cursor: pointer; transition: background .1s; }
+  .pm-table tr:hover td { background: var(--surface2); }
+  .pm-table tr.selected td { background: var(--brand-light); }
+
+  /* SCORE PILL */
+  .score-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; height: 24px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+  }
+  .score-hi { background: var(--success-bg); color: var(--success); }
+  .score-mid { background: var(--warning-bg); color: var(--warning); }
+  .score-lo { background: var(--danger-bg); color: var(--danger); }
+
+  /* TREND INDICATOR */
+  .trend { font-size: 12px; }
+  .trend-up { color: var(--success); }
+  .trend-dn { color: var(--danger); }
+  .trend-fl { color: var(--text3); }
+
+  /* MINI BAR */
+  .mini-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .mini-bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .mini-bar-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+
+  /* COMMENTS */
+  .comment-list { display: flex; flex-direction: column; gap: 12px; max-height: 340px; overflow-y: auto; }
+  .comment-item {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    border-left: 3px solid var(--brand);
+  }
+  .comment-item.lo { border-left-color: var(--danger); }
+  .comment-item.mid { border-left-color: var(--accent); }
+  .comment-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+  .comment-project { font-size: 11px; font-weight: 600; color: var(--brand); text-transform: uppercase; letter-spacing: .04em; }
+  .comment-quarter { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+  .comment-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+  /* DISTRIBUTION */
+  .dist-bars { display: flex; align-items: flex-end; gap: 8px; height: 100px; margin-bottom: 8px; }
+  .dist-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .dist-bar { width: 100%; border-radius: 4px 4px 0 0; transition: height .5s; min-height: 4px; }
+  .dist-label { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+  .dist-count { font-size: 10px; color: var(--text3); }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 32px; color: var(--text3); font-size: 13px; }
+
+  /* DETAIL PANEL */
+  #detail-panel {
+    display: none;
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .detail-header {
+    padding: 16px 20px;
+    background: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .detail-title { font-size: 15px; font-weight: 600; color: white; }
+  .detail-close {
+    background: rgba(255,255,255,.2);
+    border: none;
+    color: white;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .detail-body { padding: 20px; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .detail-metric { text-align: center; }
+  .detail-metric-val { font-family: 'DM Serif Display', serif; font-size: 28px; }
+  .detail-metric-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+    #main { padding: 16px; }
+    .header { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div class="header-logo">ITD Satisfaction</div>
+      <div class="header-sub">Project Management Office · DSV</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="quarter-badge" id="current-quarter">Loading...</span>
+    <button class="btn-refresh" onclick="loadData()">↻ Refresh</button>
+  </div>
+</div>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Connecting to SharePoint...</div>
+</div>
+
+<div id="error-state">
+  <div class="error-icon">⚠️</div>
+  <div class="error-title">Could not load data</div>
+  <div class="error-msg">The dashboard could not connect to the SharePoint Responses list. Make sure this page is hosted on your SharePoint site and you are signed in.</div>
+  <div class="error-detail" id="error-detail"></div>
+  <button class="btn-refresh" style="margin-top:8px;background:var(--brand);border-color:var(--brand)" onclick="loadData()">Try again</button>
+</div>
+
+<div id="main">
+  <!-- FILTERS -->
+  <div class="filters">
+    <span class="filter-label">Filter by:</span>
+    <select id="filter-quarter" onchange="applyFilters()">
+      <option value="">All quarters</option>
+    </select>
+    <select id="filter-pm" onchange="applyFilters()">
+      <option value="">All project managers</option>
+    </select>
+    <select id="filter-project" onchange="applyFilters()">
+      <option value="">All projects</option>
+    </select>
+  </div>
+
+  <!-- METRICS -->
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Team avg score</div>
+      <div class="metric-value" id="m-avg">—</div>
+      <div class="metric-sub" id="m-avg-sub"></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Responses</div>
+      <div class="metric-value" id="m-count">—</div>
+      <div class="metric-sub" id="m-count-sub"></div>
+    </div>
+    <div class="metric danger">
+      <div class="metric-label">At-risk projects</div>
+      <div class="metric-value" id="m-atrisk">—</div>
+      <div class="metric-sub">Score below 3.0</div>
+    </div>
+    <div class="metric success">
+      <div class="metric-label">Top rated project</div>
+      <div class="metric-value" id="m-top" style="font-size:18px;padding-top:6px">—</div>
+      <div class="metric-sub" id="m-top-sub"></div>
+    </div>
+  </div>
+
+  <!-- TREND + DISTRIBUTION -->
+  <div class="grid3">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Score trend by quarter</span>
+      </div>
+      <div class="card-body">
+        <canvas id="trend-chart" height="180"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Score distribution</span>
+      </div>
+      <div class="card-body">
+        <div class="dist-bars" id="dist-bars"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PM TABLE + COMMENTS -->
+  <div class="grid2">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Projects</span>
+        <span style="font-size:11px;color:var(--text3)">Click to drill down</span>
+      </div>
+      <div class="card-body" style="padding:0">
+        <table class="pm-table" id="pm-table">
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>PM</th>
+              <th>Avg score</th>
+              <th>Responses</th>
+              <th>Trend</th>
+            </tr>
+          </thead>
+          <tbody id="pm-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Stakeholder comments</span>
+        <select id="comment-filter" style="font-size:11px;padding:3px 8px" onchange="renderComments()">
+          <option value="">All scores</option>
+          <option value="lo">Score 1–2</option>
+          <option value="mid">Score 3</option>
+          <option value="hi">Score 4–5</option>
+        </select>
+      </div>
+      <div class="card-body">
+        <div class="comment-list" id="comment-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL PANEL -->
+  <div id="detail-panel">
+    <div class="detail-header">
+      <span class="detail-title" id="detail-title">Project detail</span>
+      <button class="detail-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-body">
+      <div class="detail-grid">
+        <div class="detail-metric">
+          <div class="detail-metric-val" id="d-avg">—</div>
+          <div class="detail-metric-label">Average score</div>
+        </div>
+        <div class="detail-metric">
+          <div class="detail-metric-val" id="d-count">—</div>
+          <div class="detail-metric-label">Responses</div>
+        </div>
+        <div class="detail-metric">
+          <div class="detail-metric-val" id="d-latest">—</div>
+          <div class="detail-metric-label">Latest quarter</div>
+        </div>
+      </div>
+      <canvas id="detail-chart" height="120"></canvas>
+      <div style="margin-top:16px">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Comments for this project</div>
+        <div class="comment-list" id="detail-comments"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+// These values are automatically detected from the current page URL.
+// If detection fails, set them manually below.
+const CONFIG = {
+  siteUrl: '',       // Leave empty to auto-detect, or set manually e.g. 'https://dsvcorp.sharepoint.com/teams/ITPMOTeam-Management'
+  listName: 'Responses',
+  projectsListName: 'ITD Projects',
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let allData = [];
+let projectsData = {};
+let filteredData = [];
+let trendChart = null;
+let detailChart = null;
+let selectedProject = null;
+
+// ─── SHAREPOINT API ───────────────────────────────────────────────────────────
+function getSiteUrl() {
+  if (CONFIG.siteUrl) return CONFIG.siteUrl;
+  const url = window.location.href;
+  const match = url.match(/(https:\/\/[^\/]+\/[^\/]+\/[^\/]+)/);
+  return match ? match[1] : window.location.origin;
+}
+
+async function fetchList(listName, select = '', filter = '', expand = '') {
+  const base = getSiteUrl();
+  let url = `${base}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items?$top=5000`;
+  if (select) url += `&$select=${select}`;
+  if (filter) url += `&$filter=${filter}`;
+  if (expand) url += `&$expand=${expand}`;
+
+  const res = await fetch(url, {
+    headers: { 'Accept': 'application/json;odata=verbose' }
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}\nURL: ${url}`);
+  const json = await res.json();
+  return json.d.results;
+}
+
+// ─── LOAD DATA ────────────────────────────────────────────────────────────────
+async function loadData() {
+  showLoading();
+  try {
+    // Fetch responses with project lookup expanded
+    const responses = await fetchList(
+      CONFIG.listName,
+      'ID,Quarter,Score,Comment,Submitted_x0020_at,Project/SAP_ID,Project/ProjectManager,Project/ID',
+      '',
+      'Project'
+    );
+
+    allData = responses.map(r => ({
+      id: r.ID,
+      quarter: r.Quarter || '',
+      score: parseFloat(r.Score) || 0,
+      comment: r.Comment || '',
+      submittedAt: r.Submitted_x0020_at || '',
+      projectName: r.Project ? (r.Project.SAP_ID || 'Unknown') : 'Unknown',
+      projectId: r.Project ? r.Project.ID : null,
+      pm: r.Project ? (r.Project.ProjectManager || 'Unknown') : 'Unknown',
+    }));
+
+    populateFilters();
+    applyFilters();
+    showMain();
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+// ─── FILTERS ──────────────────────────────────────────────────────────────────
+function populateFilters() {
+  const quarters = [...new Set(allData.map(d => d.quarter).filter(Boolean))].sort().reverse();
+  const pms = [...new Set(allData.map(d => d.pm).filter(Boolean))].sort();
+  const projects = [...new Set(allData.map(d => d.projectName).filter(Boolean))].sort();
+
+  setOptions('filter-quarter', quarters);
+  setOptions('filter-pm', pms);
+  setOptions('filter-project', projects);
+
+  if (quarters.length > 0) {
+    document.getElementById('current-quarter').textContent = quarters[0];
+  }
+}
+
+function setOptions(id, values) {
+  const sel = document.getElementById(id);
+  const current = sel.value;
+  while (sel.options.length > 1) sel.remove(1);
+  values.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+  if (values.includes(current)) sel.value = current;
+}
+
+function applyFilters() {
+  const q = document.getElementById('filter-quarter').value;
+  const pm = document.getElementById('filter-pm').value;
+  const proj = document.getElementById('filter-project').value;
+
+  filteredData = allData.filter(d =>
+    (!q || d.quarter === q) &&
+    (!pm || d.pm === pm) &&
+    (!proj || d.projectName === proj)
+  );
+
+  renderMetrics();
+  renderTrend();
+  renderDistribution();
+  renderTable();
+  renderComments();
+  if (selectedProject) showDetail(selectedProject);
+}
+
+// ─── METRICS ──────────────────────────────────────────────────────────────────
+function renderMetrics() {
+  const scores = filteredData.map(d => d.score).filter(s => s > 0);
+  const avg = scores.length ? (scores.reduce((a,b) => a+b,0) / scores.length) : 0;
+
+  document.getElementById('m-avg').textContent = avg ? avg.toFixed(1) : '—';
+  document.getElementById('m-count').textContent = filteredData.length;
+  document.getElementById('m-count-sub').textContent = `${scores.length} with scores`;
+
+  // At-risk projects (avg < 3)
+  const byProject = groupBy(filteredData, 'projectName');
+  const atRisk = Object.entries(byProject).filter(([,rows]) => {
+    const s = rows.map(r => r.score).filter(x => x > 0);
+    return s.length && avg3(s) < 3;
+  });
+  document.getElementById('m-atrisk').textContent = atRisk.length;
+
+  // Top rated
+  const projectAvgs = Object.entries(byProject).map(([name, rows]) => {
+    const s = rows.map(r => r.score).filter(x => x > 0);
+    return { name, avg: s.length ? avg3(s) : 0, count: s.length };
+  }).filter(p => p.count > 0).sort((a,b) => b.avg - a.avg);
+
+  if (projectAvgs.length) {
+    const top = projectAvgs[0];
+    const shortName = top.name.length > 20 ? top.name.slice(0,18)+'…' : top.name;
+    document.getElementById('m-top').textContent = shortName;
+    document.getElementById('m-top-sub').textContent = `Score: ${top.avg.toFixed(1)}`;
+  }
+}
+
+// ─── TREND CHART ──────────────────────────────────────────────────────────────
+function renderTrend() {
+  const byQuarter = groupBy(filteredData, 'quarter');
+  const quarters = Object.keys(byQuarter).sort();
+  const avgs = quarters.map(q => {
+    const s = byQuarter[q].map(d => d.score).filter(x => x > 0);
+    return s.length ? parseFloat(avg3(s).toFixed(2)) : null;
+  });
+
+  const ctx = document.getElementById('trend-chart').getContext('2d');
+  if (trendChart) trendChart.destroy();
+  trendChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: quarters,
+      datasets: [{
+        label: 'Avg score',
+        data: avgs,
+        borderColor: '#1a5fa8',
+        backgroundColor: 'rgba(26,95,168,.08)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#1a5fa8',
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.3,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          min: 1, max: 5,
+          ticks: { stepSize: 1, font: { family: 'DM Mono', size: 11 } },
+          grid: { color: '#e2e8f0' }
+        },
+        x: { ticks: { font: { family: 'DM Mono', size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ─── DISTRIBUTION ─────────────────────────────────────────────────────────────
+function renderDistribution() {
+  const counts = [1,2,3,4,5].map(s => filteredData.filter(d => d.score === s).length);
+  const max = Math.max(...counts, 1);
+  const colors = ['#c0392b','#e67e22','#f39c12','#27ae60','#1a5fa8'];
+  const container = document.getElementById('dist-bars');
+  container.innerHTML = '';
+  [1,2,3,4,5].forEach((s,i) => {
+    const pct = Math.round((counts[i] / max) * 100);
+    container.innerHTML += `
+      <div class="dist-bar-col">
+        <div class="dist-count">${counts[i]}</div>
+        <div class="dist-bar" style="height:${Math.max(pct,4)}%;background:${colors[i]}"></div>
+        <div class="dist-label">${s}</div>
+      </div>`;
+  });
+}
+
+// ─── PROJECT TABLE ────────────────────────────────────────────────────────────
+function renderTable() {
+  const byProject = groupBy(filteredData, 'projectName');
+  const rows = Object.entries(byProject).map(([name, data]) => {
+    const scores = data.map(d => d.score).filter(x => x > 0);
+    const avg = scores.length ? avg3(scores) : 0;
+    const pm = data[0]?.pm || '—';
+    const quarters = [...new Set(data.map(d => d.quarter))].sort();
+    let trend = '—';
+    if (quarters.length >= 2) {
+      const last2 = quarters.slice(-2);
+      const a1 = avg3(data.filter(d => d.quarter === last2[0]).map(d => d.score).filter(x => x > 0));
+      const a2 = avg3(data.filter(d => d.quarter === last2[1]).map(d => d.score).filter(x => x > 0));
+      trend = a2 > a1 ? '↑' : a2 < a1 ? '↓' : '→';
+    }
+    return { name, avg, count: scores.length, pm, trend };
+  }).sort((a,b) => b.avg - a.avg);
+
+  const tbody = document.getElementById('pm-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">No data for selected filters</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    const cls = r.avg >= 4 ? 'score-hi' : r.avg >= 3 ? 'score-mid' : 'score-lo';
+    const trendCls = r.trend === '↑' ? 'trend-up' : r.trend === '↓' ? 'trend-dn' : 'trend-fl';
+    const barColor = r.avg >= 4 ? '#0e7c4a' : r.avg >= 3 ? '#b45309' : '#c0392b';
+    const pct = Math.round((r.avg / 5) * 100);
+    const shortName = r.name.length > 28 ? r.name.slice(0,26)+'…' : r.name;
+    const shortPm = r.pm.length > 16 ? r.pm.slice(0,14)+'…' : r.pm;
+    return `<tr onclick="showDetail('${r.name.replace(/'/g,"\\'")}')">
+      <td title="${r.name}">${shortName}</td>
+      <td title="${r.pm}" style="color:var(--text2)">${shortPm}</td>
+      <td>
+        <div class="mini-bar-wrap">
+          <span class="score-pill ${cls}">${r.avg.toFixed(1)}</span>
+          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+        </div>
+      </td>
+      <td style="color:var(--text3);font-family:'DM Mono',monospace">${r.count}</td>
+      <td class="trend ${trendCls}">${r.trend}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── COMMENTS ────────────────────────────────────────────────────────────────
+function renderComments() {
+  const cf = document.getElementById('comment-filter').value;
+  let data = filteredData.filter(d => d.comment && d.comment.trim());
+  if (cf === 'lo') data = data.filter(d => d.score <= 2);
+  if (cf === 'mid') data = data.filter(d => d.score === 3);
+  if (cf === 'hi') data = data.filter(d => d.score >= 4);
+
+  const container = document.getElementById('comment-list');
+  if (!data.length) {
+    container.innerHTML = '<div class="empty">No comments for selected filters</div>';
+    return;
+  }
+
+  container.innerHTML = data.slice(0, 20).map(d => {
+    const cls = d.score <= 2 ? 'lo' : d.score === 3 ? 'mid' : '';
+    const shortProj = d.projectName.length > 30 ? d.projectName.slice(0,28)+'…' : d.projectName;
+    return `<div class="comment-item ${cls}">
+      <div class="comment-meta">
+        <span class="comment-project">${shortProj}</span>
+        <span class="score-pill ${d.score >= 4 ? 'score-hi' : d.score >= 3 ? 'score-mid' : 'score-lo'}" style="width:28px;height:20px;font-size:11px">${d.score}</span>
+        <span class="comment-quarter">${d.quarter}</span>
+      </div>
+      <div class="comment-text">${escHtml(d.comment)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── DETAIL PANEL ────────────────────────────────────────────────────────────
+function showDetail(projectName) {
+  selectedProject = projectName;
+  const data = filteredData.filter(d => d.projectName === projectName);
+  const scores = data.map(d => d.score).filter(x => x > 0);
+  const avg = scores.length ? avg3(scores) : 0;
+
+  document.getElementById('detail-title').textContent = projectName;
+  document.getElementById('d-avg').textContent = avg ? avg.toFixed(1) : '—';
+  document.getElementById('d-count').textContent = scores.length;
+
+  const quarters = [...new Set(data.map(d => d.quarter))].sort();
+  document.getElementById('d-latest').textContent = quarters[quarters.length - 1] || '—';
+
+  // Quarter trend for this project
+  const qAvgs = quarters.map(q => {
+    const s = data.filter(d => d.quarter === q).map(d => d.score).filter(x => x > 0);
+    return s.length ? parseFloat(avg3(s).toFixed(2)) : null;
+  });
+
+  const ctx = document.getElementById('detail-chart').getContext('2d');
+  if (detailChart) detailChart.destroy();
+  detailChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: quarters,
+      datasets: [{
+        label: 'Avg score',
+        data: qAvgs,
+        backgroundColor: qAvgs.map(v => v >= 4 ? 'rgba(14,124,74,.7)' : v >= 3 ? 'rgba(180,83,9,.7)' : 'rgba(192,57,43,.7)'),
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 0, max: 5, ticks: { stepSize: 1, font: { family: 'DM Mono', size: 11 } } },
+        x: { ticks: { font: { family: 'DM Mono', size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Comments for this project
+  const comments = data.filter(d => d.comment && d.comment.trim());
+  const dc = document.getElementById('detail-comments');
+  dc.innerHTML = comments.length ? comments.map(d => `
+    <div class="comment-item ${d.score <= 2 ? 'lo' : d.score === 3 ? 'mid' : ''}">
+      <div class="comment-meta">
+        <span class="score-pill ${d.score >= 4 ? 'score-hi' : d.score >= 3 ? 'score-mid' : 'score-lo'}" style="width:28px;height:20px;font-size:11px">${d.score}</span>
+        <span class="comment-quarter">${d.quarter}</span>
+      </div>
+      <div class="comment-text">${escHtml(d.comment)}</div>
+    </div>`).join('') : '<div class="empty">No comments for this project</div>';
+
+  // Highlight table row
+  document.querySelectorAll('#pm-tbody tr').forEach(tr => tr.classList.remove('selected'));
+  document.querySelectorAll('#pm-tbody tr').forEach(tr => {
+    if (tr.cells[0]?.title === projectName || tr.cells[0]?.textContent.trim().startsWith(projectName.slice(0,20))) {
+      tr.classList.add('selected');
+    }
+  });
+
+  document.getElementById('detail-panel').style.display = 'block';
+  document.getElementById('detail-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeDetail() {
+  selectedProject = null;
+  document.getElementById('detail-panel').style.display = 'none';
+  document.querySelectorAll('#pm-tbody tr').forEach(tr => tr.classList.remove('selected'));
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function groupBy(arr, key) {
+  return arr.reduce((acc, item) => {
+    const k = item[key] || 'Unknown';
+    if (!acc[k]) acc[k] = [];
+    acc[k].push(item);
+    return acc;
+  }, {});
+}
+function avg3(arr) { return arr.reduce((a,b) => a+b,0) / arr.length; }
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── UI STATE ─────────────────────────────────────────────────────────────────
+function showLoading() {
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('error-state').style.display = 'none';
+  document.getElementById('main').style.display = 'none';
+}
+function showMain() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error-state').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+}
+function showError(msg) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error-state').style.display = 'flex';
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('error-detail').textContent = msg;
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>

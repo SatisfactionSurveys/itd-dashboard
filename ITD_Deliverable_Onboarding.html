@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ITD Deliverable Onboarding</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #1a5fa8;
+    --brand-light: #e8f1fb;
+    --brand-dark: #0d3d6e;
+    --success: #0e7c4a;
+    --success-bg: #e6f6ee;
+    --danger: #c0392b;
+    --danger-bg: #fdecea;
+    --warning: #b45309;
+    --warning-bg: #fef3c7;
+    --surface: #ffffff;
+    --surface2: #f7f9fc;
+    --border: #e2e8f0;
+    --text: #1a202c;
+    --text2: #4a5568;
+    --text3: #718096;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface2);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  .header {
+    background: var(--brand-dark);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  .header-logo { font-family: 'DM Serif Display', serif; font-size: 20px; color: white; }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,.55); margin-top: 1px; }
+
+  .container { max-width: 800px; margin: 0 auto; padding: 32px; }
+
+  .page-title { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--text); margin-bottom: 6px; }
+  .page-sub { font-size: 14px; color: var(--text2); margin-bottom: 28px; }
+
+  .section {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 14px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-num {
+    width: 22px; height: 22px;
+    background: var(--brand);
+    color: white;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .section-body { padding: 20px; }
+
+  .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  label .req { color: var(--danger); margin-left: 2px; }
+  input[type="text"], select, textarea {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s;
+  }
+  input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(26,95,168,.1); }
+  input[type="text"].error, select.error { border-color: var(--danger); }
+
+  .field-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .toggle-row { display: flex; align-items: center; gap: 10px; }
+  .toggle {
+    position: relative;
+    width: 40px; height: 22px;
+    flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 3px; top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform .2s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--brand); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+  .toggle-label { font-size: 13px; color: var(--text2); }
+
+  /* REPEATING ROWS */
+  .repeating { display: flex; flex-direction: column; gap: 12px; }
+  .rep-row {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    position: relative;
+  }
+  .rep-row-grid { display: grid; gap: 10px; }
+  .rep-remove {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background .1s, color .1s;
+  }
+  .rep-remove:hover { background: var(--danger-bg); color: var(--danger); }
+
+  .btn-add {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--brand);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    width: 100%;
+    justify-content: center;
+    transition: background .15s, border-color .15s;
+    margin-top: 4px;
+  }
+  .btn-add:hover { background: var(--brand-light); border-color: var(--brand); }
+
+  /* AUTOCOMPLETE */
+  .autocomplete-wrap { position: relative; }
+  .autocomplete-input { width: 100%; }
+  .autocomplete-dropdown {
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    box-shadow: var(--shadow);
+    z-index: 50;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+  }
+  .autocomplete-dropdown.open { display: block; }
+  .ac-item {
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+  .ac-item:last-child { border-bottom: none; }
+  .ac-item:hover, .ac-item.focused { background: var(--brand-light); }
+  .ac-item-name { font-weight: 500; color: var(--text); }
+  .ac-item-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .ac-add-new {
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--brand);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--brand-light);
+  }
+  .ac-add-new:hover { background: var(--brand-light); }
+  .selected-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--brand-light);
+    color: var(--brand);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 99px;
+    margin-top: 6px;
+  }
+  .selected-tag button {
+    background: none;
+    border: none;
+    color: var(--brand);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+  }
+
+  /* NEW PERSON MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: 420px;
+    max-width: 90vw;
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 16px 20px;
+    background: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-title { font-size: 15px; font-weight: 600; color: white; }
+  .modal-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+  .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* SUBMIT */
+  .submit-section { margin-top: 24px; }
+  .btn-submit {
+    width: 100%;
+    background: var(--brand);
+    color: white;
+    border: none;
+    padding: 14px;
+    font-size: 15px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-submit:hover { background: var(--brand-dark); }
+  .btn-submit:disabled { background: var(--text3); cursor: not-allowed; }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text2);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+  .btn-primary-sm {
+    background: var(--brand);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+
+  /* STATUS */
+  .status {
+    display: none;
+    padding: 14px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    margin-top: 16px;
+    line-height: 1.5;
+  }
+  .status.success { display: block; background: var(--success-bg); color: var(--success); border: 1px solid #9de5c4; }
+  .status.error { display: block; background: var(--danger-bg); color: var(--danger); border: 1px solid #f5b7b1; }
+  .status.loading { display: block; background: var(--brand-light); color: var(--brand); border: 1px solid #b5d4f4; }
+
+  .spinner-inline {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-logo">ITD Deliverable Onboarding</div>
+    <div class="header-sub">Project Management Office · DSV · Leadership only</div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="page-title">Add new deliverable</div>
+  <div class="page-sub">Creates entries in ITD Deliverables, ITD Deliverable Owners and ITD Assignments automatically.</div>
+
+  <!-- SECTION 1: DELIVERABLE DETAILS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title"><span class="section-num">1</span> Deliverable details</div>
+    </div>
+    <div class="section-body">
+      <div class="grid2">
+        <div class="field">
+          <label>Deliverable name <span class="req">*</span></label>
+          <input type="text" id="del-name" placeholder="e.g. Microsoft EA SCE agreement renewal">
+        </div>
+        <div class="field">
+          <label>SAP ID</label>
+          <input type="text" id="del-sap" placeholder="e.g. _P00434">
+          <div class="field-hint">Leave blank if not applicable</div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Type <span class="req">*</span></label>
+          <select id="del-type">
+            <option value="">Select type...</option>
+            <option>Project</option>
+            <option>Agile coaching</option>
+            <option>Scrum Master support</option>
+            <option>Training</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <div class="toggle-row" style="margin-top:8px">
+            <label class="toggle">
+              <input type="checkbox" id="del-active" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label">Active deliverable</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: OWNERS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title"><span class="section-num">2</span> Owners</div>
+    </div>
+    <div class="section-body">
+      <div class="field-hint" style="margin-bottom:14px">Add everyone responsible for this deliverable. Each person can have a different role.</div>
+      <div class="repeating" id="owners-list"></div>
+      <button class="btn-add" onclick="addOwnerRow()">+ Add owner</button>
+    </div>
+  </div>
+
+  <!-- SECTION 3: STAKEHOLDERS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title"><span class="section-num">3</span> Stakeholders</div>
+    </div>
+    <div class="section-body">
+      <div class="field-hint" style="margin-bottom:14px">Add stakeholders who should receive the satisfaction survey. Toggle off to link without surveying.</div>
+      <div class="repeating" id="stakeholders-list"></div>
+      <button class="btn-add" onclick="addStakeholderRow()">+ Add stakeholder</button>
+    </div>
+  </div>
+
+  <!-- SUBMIT -->
+  <div class="submit-section">
+    <button class="btn-submit" id="submit-btn" onclick="submitForm()">
+      <span class="spinner-inline" id="submit-spinner"></span>
+      <span id="submit-label">Create deliverable</span>
+    </button>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<!-- ADD NEW EMPLOYEE MODAL -->
+<div class="modal-overlay" id="employee-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add new employee</span>
+      <button class="modal-close" onclick="closeModal('employee-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Full name <span class="req">*</span></label>
+        <input type="text" id="new-emp-name" placeholder="e.g. Nanna Koustrup - DSV">
+      </div>
+      <div class="field">
+        <label>Email <span class="req">*</span></label>
+        <input type="text" id="new-emp-email" placeholder="e.g. nanna.koustrup@dsv.com">
+      </div>
+      <div class="field">
+        <label>Employee ID</label>
+        <input type="text" id="new-emp-id" placeholder="e.g. 364705">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('employee-modal')">Cancel</button>
+      <button class="btn-primary-sm" onclick="saveNewEmployee()">Add employee</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD NEW STAKEHOLDER MODAL -->
+<div class="modal-overlay" id="stakeholder-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add new stakeholder</span>
+      <button class="modal-close" onclick="closeModal('stakeholder-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Full name <span class="req">*</span></label>
+        <input type="text" id="new-sh-name" placeholder="e.g. John Smith - DSV">
+      </div>
+      <div class="field">
+        <label>Email <span class="req">*</span></label>
+        <input type="text" id="new-sh-email" placeholder="e.g. john.smith@dsv.com">
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="new-sh-lang">
+          <option>English</option>
+          <option>Danish</option>
+          <option>German</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('stakeholder-modal')">Cancel</button>
+      <button class="btn-primary-sm" onclick="saveNewStakeholder()">Add stakeholder</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const CONFIG = {
+  siteUrl: '', // Leave empty to auto-detect
+  lists: {
+    deliverables: 'ITD Deliverables',
+    deliverableOwners: 'ITD Deliverable Owners',
+    assignments: 'ITD Assignments',
+    employees: 'ITD Employees',
+    stakeholders: 'ITD Stakeholders',
+  }
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let employees = [];
+let stakeholders = [];
+let ownerRows = [];
+let stakeholderRows = [];
+let pendingModalTarget = null; // which row triggered the modal
+
+// ─── SHAREPOINT API ───────────────────────────────────────────────────────────
+function getSiteUrl() {
+  if (CONFIG.siteUrl) return CONFIG.siteUrl;
+  const m = window.location.href.match(/(https:\/\/[^\/]+\/[^\/]+\/[^\/]+)/);
+  return m ? m[1] : window.location.origin;
+}
+
+async function getDigest() {
+  const res = await fetch(`${getSiteUrl()}/_api/contextinfo`, {
+    method: 'POST',
+    headers: { 'Accept': 'application/json;odata=verbose' }
+  });
+  const json = await res.json();
+  return json.d.GetContextWebInformation.FormDigestValue;
+}
+
+async function fetchList(listName, select = '') {
+  let url = `${getSiteUrl()}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items?$top=5000`;
+  if (select) url += `&$select=${select}`;
+  const res = await fetch(url, { headers: { 'Accept': 'application/json;odata=verbose' } });
+  const json = await res.json();
+  return json.d.results;
+}
+
+async function createItem(listName, data, digest) {
+  const listRes = await fetch(
+    `${getSiteUrl()}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')`,
+    { headers: { 'Accept': 'application/json;odata=verbose' } }
+  );
+  const listJson = await listRes.json();
+  const listItemType = listJson.d.ListItemEntityTypeFullName;
+
+  const res = await fetch(
+    `${getSiteUrl()}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items`,
+    {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json;odata=verbose',
+        'Content-Type': 'application/json;odata=verbose',
+        'X-RequestDigest': digest,
+      },
+      body: JSON.stringify({ __metadata: { type: listItemType }, ...data })
+    }
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message?.value || `HTTP ${res.status}`);
+  }
+  return await res.json();
+}
+
+// ─── LOAD REFERENCE DATA ─────────────────────────────────────────────────────
+async function loadReferenceData() {
+  try {
+    const [emps, shs] = await Promise.all([
+      fetchList(CONFIG.lists.employees, 'ID,Title,Employee_x0020_ID,Email'),
+      fetchList(CONFIG.lists.stakeholders, 'ID,Title,Email'),
+    ]);
+    employees = emps.map(e => ({ id: e.ID, name: e.Title, empId: e.Employee_x0020_ID || '', email: e.Email || '' }));
+    stakeholders = shs.map(s => ({ id: s.ID, name: s.Title, email: s.Email || '' }));
+  } catch (err) {
+    // Running locally — use empty arrays, autocomplete will show "add new" only
+    employees = [];
+    stakeholders = [];
+  }
+}
+
+// ─── OWNER ROWS ──────────────────────────────────────────────────────────────
+let ownerCounter = 0;
+function addOwnerRow() {
+  const id = ++ownerCounter;
+  ownerRows.push({ id, selectedEmployee: null });
+  const wrap = document.getElementById('owners-list');
+  const div = document.createElement('div');
+  div.className = 'rep-row';
+  div.id = `owner-row-${id}`;
+  div.innerHTML = `
+    <button class="rep-remove" onclick="removeRow('owner', ${id})" title="Remove">✕</button>
+    <div class="rep-row-grid" style="grid-template-columns:1fr 1fr;padding-right:24px">
+      <div>
+        <label style="margin-bottom:5px">Employee</label>
+        <div class="autocomplete-wrap">
+          <input type="text" class="autocomplete-input" id="owner-search-${id}"
+            placeholder="Search by name..."
+            oninput="filterAC('owner', ${id}, this.value)"
+            onfocus="openAC('owner', ${id})"
+            autocomplete="off">
+          <div class="autocomplete-dropdown" id="owner-ac-${id}"></div>
+        </div>
+        <div id="owner-tag-${id}"></div>
+      </div>
+      <div>
+        <label style="margin-bottom:5px">Role</label>
+        <select id="owner-role-${id}">
+          <option value="">Select role...</option>
+          <option>Project Manager</option>
+          <option>Agile Coach</option>
+          <option>Scrum Master</option>
+          <option>Team Lead</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>`;
+  wrap.appendChild(div);
+}
+
+// ─── STAKEHOLDER ROWS ─────────────────────────────────────────────────────────
+let shCounter = 0;
+function addStakeholderRow() {
+  const id = ++shCounter;
+  stakeholderRows.push({ id, selectedStakeholder: null });
+  const wrap = document.getElementById('stakeholders-list');
+  const div = document.createElement('div');
+  div.className = 'rep-row';
+  div.id = `sh-row-${id}`;
+  div.innerHTML = `
+    <button class="rep-remove" onclick="removeRow('sh', ${id})" title="Remove">✕</button>
+    <div class="rep-row-grid" style="grid-template-columns:1fr 1fr 1fr;padding-right:24px">
+      <div>
+        <label style="margin-bottom:5px">Stakeholder</label>
+        <div class="autocomplete-wrap">
+          <input type="text" class="autocomplete-input" id="sh-search-${id}"
+            placeholder="Search by name..."
+            oninput="filterAC('sh', ${id}, this.value)"
+            onfocus="openAC('sh', ${id})"
+            autocomplete="off">
+          <div class="autocomplete-dropdown" id="sh-ac-${id}"></div>
+        </div>
+        <div id="sh-tag-${id}"></div>
+      </div>
+      <div>
+        <label style="margin-bottom:5px">Role</label>
+        <select id="sh-role-${id}">
+          <option value="">Select role...</option>
+          <option>Sponsor</option>
+          <option>Project Executive</option>
+          <option>End User</option>
+          <option>Team Member</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label style="margin-bottom:5px">Include in survey</label>
+        <div class="toggle-row" style="margin-top:8px">
+          <label class="toggle">
+            <input type="checkbox" id="sh-survey-${id}" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label" style="font-size:12px">Yes</span>
+        </div>
+      </div>
+    </div>`;
+  wrap.appendChild(div);
+}
+
+function removeRow(type, id) {
+  const el = document.getElementById(`${type === 'owner' ? 'owner' : 'sh'}-row-${id}`);
+  if (el) el.remove();
+  if (type === 'owner') ownerRows = ownerRows.filter(r => r.id !== id);
+  else stakeholderRows = stakeholderRows.filter(r => r.id !== id);
+}
+
+// ─── AUTOCOMPLETE ─────────────────────────────────────────────────────────────
+function getACData(type) {
+  return type === 'owner' ? employees : stakeholders;
+}
+
+function openAC(type, id) {
+  filterAC(type, id, document.getElementById(`${type}-search-${id}`).value);
+}
+
+function filterAC(type, id, query) {
+  const data = getACData(type);
+  const dropdown = document.getElementById(`${type}-ac-${id}`);
+  const q = query.toLowerCase().trim();
+  const filtered = q ? data.filter(d => d.name.toLowerCase().includes(q) || (d.email && d.email.toLowerCase().includes(q))) : data.slice(0, 10);
+
+  let html = filtered.map(d => `
+    <div class="ac-item" onclick="selectACItem('${type}', ${id}, ${d.id}, '${escJs(d.name)}')">
+      <div class="ac-item-name">${escHtml(d.name)}</div>
+      ${d.email ? `<div class="ac-item-sub">${escHtml(d.email)}</div>` : ''}
+    </div>`).join('');
+
+  const addLabel = type === 'owner' ? 'Add new employee' : 'Add new stakeholder';
+  html += `<div class="ac-add-new" onclick="openAddNew('${type}', ${id}, '${escJs(query)}')">+ ${addLabel}${query ? ` "${escHtml(query)}"` : ''}</div>`;
+
+  dropdown.innerHTML = html;
+  dropdown.classList.add('open');
+
+  document.addEventListener('click', function closeAC(e) {
+    if (!dropdown.contains(e.target) && e.target.id !== `${type}-search-${id}`) {
+      dropdown.classList.remove('open');
+      document.removeEventListener('click', closeAC);
+    }
+  });
+}
+
+function selectACItem(type, id, itemId, name) {
+  const dropdown = document.getElementById(`${type}-ac-${id}`);
+  const input = document.getElementById(`${type}-search-${id}`);
+  const tag = document.getElementById(`${type}-tag-${id}`);
+
+  dropdown.classList.remove('open');
+  input.value = '';
+  input.placeholder = 'Selected ✓';
+
+  tag.innerHTML = `<span class="selected-tag">${escHtml(name)}<button onclick="clearACItem('${type}', ${id})">✕</button></span>`;
+
+  if (type === 'owner') {
+    const row = ownerRows.find(r => r.id === id);
+    if (row) row.selectedEmployee = itemId;
+  } else {
+    const row = stakeholderRows.find(r => r.id === id);
+    if (row) row.selectedStakeholder = itemId;
+  }
+}
+
+function clearACItem(type, id) {
+  const input = document.getElementById(`${type}-search-${id}`);
+  const tag = document.getElementById(`${type}-tag-${id}`);
+  input.placeholder = 'Search by name...';
+  tag.innerHTML = '';
+  if (type === 'owner') {
+    const row = ownerRows.find(r => r.id === id);
+    if (row) row.selectedEmployee = null;
+  } else {
+    const row = stakeholderRows.find(r => r.id === id);
+    if (row) row.selectedStakeholder = null;
+  }
+}
+
+// ─── ADD NEW MODALS ───────────────────────────────────────────────────────────
+function openAddNew(type, rowId, prefill) {
+  pendingModalTarget = { type, rowId };
+  document.getElementById(`${type === 'owner' ? 'employee' : 'stakeholder'}-modal`).classList.add('open');
+  if (type === 'owner' && prefill) document.getElementById('new-emp-name').value = prefill;
+  if (type === 'sh' && prefill) document.getElementById('new-sh-name').value = prefill;
+  document.getElementById(`${type}-ac-${rowId}`).classList.remove('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  pendingModalTarget = null;
+}
+
+async function saveNewEmployee() {
+  const name = document.getElementById('new-emp-name').value.trim();
+  const email = document.getElementById('new-emp-email').value.trim();
+  const empId = document.getElementById('new-emp-id').value.trim();
+  if (!name || !email) { alert('Name and email are required.'); return; }
+
+  try {
+    const digest = await getDigest();
+    const res = await createItem(CONFIG.lists.employees, {
+      Title: name,
+      Email: email,
+      Employee_x0020_ID: empId,
+    }, digest);
+    const newEmp = { id: res.d.ID, name, email, empId };
+    employees.push(newEmp);
+    if (pendingModalTarget) selectACItem('owner', pendingModalTarget.rowId, newEmp.id, newEmp.name);
+    closeModal('employee-modal');
+    document.getElementById('new-emp-name').value = '';
+    document.getElementById('new-emp-email').value = '';
+    document.getElementById('new-emp-id').value = '';
+  } catch (err) {
+    alert('Could not save employee: ' + err.message);
+  }
+}
+
+async function saveNewStakeholder() {
+  const name = document.getElementById('new-sh-name').value.trim();
+  const email = document.getElementById('new-sh-email').value.trim();
+  const lang = document.getElementById('new-sh-lang').value;
+  if (!name || !email) { alert('Name and email are required.'); return; }
+
+  try {
+    const digest = await getDigest();
+    const res = await createItem(CONFIG.lists.stakeholders, {
+      Title: name,
+      Email: email,
+      Language: lang,
+      Active: true,
+    }, digest);
+    const newSh = { id: res.d.ID, name, email };
+    stakeholders.push(newSh);
+    if (pendingModalTarget) selectACItem('sh', pendingModalTarget.rowId, newSh.id, newSh.name);
+    closeModal('stakeholder-modal');
+    document.getElementById('new-sh-name').value = '';
+    document.getElementById('new-sh-email').value = '';
+  } catch (err) {
+    alert('Could not save stakeholder: ' + err.message);
+  }
+}
+
+// ─── SUBMIT ───────────────────────────────────────────────────────────────────
+async function submitForm() {
+  const name = document.getElementById('del-name').value.trim();
+  const sap = document.getElementById('del-sap').value.trim();
+  const type = document.getElementById('del-type').value;
+  const active = document.getElementById('del-active').checked;
+
+  if (!name) { showStatus('error', 'Please enter a deliverable name.'); return; }
+  if (!type) { showStatus('error', 'Please select a deliverable type.'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  const spinner = document.getElementById('submit-spinner');
+  const label = document.getElementById('submit-label');
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  label.textContent = 'Creating...';
+  showStatus('loading', 'Creating deliverable in SharePoint...');
+
+  try {
+    const digest = await getDigest();
+
+    // 1 — Create deliverable
+    showStatus('loading', 'Step 1 of 3 — Creating deliverable...');
+    const delRes = await createItem(CONFIG.lists.deliverables, {
+      Title: name,
+      SAP_ID: sap || name,
+      Type: type,
+      ActiveProject_x003f_: active,
+    }, digest);
+    const deliverableId = delRes.d.ID;
+
+    // 2 — Create owner rows
+    showStatus('loading', 'Step 2 of 3 — Adding owners...');
+    const ownerEls = document.querySelectorAll('[id^="owner-row-"]');
+    for (const el of ownerEls) {
+      const rowId = parseInt(el.id.replace('owner-row-', ''));
+      const row = ownerRows.find(r => r.id === rowId);
+      const role = document.getElementById(`owner-role-${rowId}`)?.value;
+      if (!row?.selectedEmployee) continue;
+      await createItem(CONFIG.lists.deliverableOwners, {
+        DeliverableId: deliverableId,
+        OwnerId: row.selectedEmployee,
+        Owner_x0020_Role: role || '',
+        Active: true,
+      }, digest);
+    }
+
+    // 3 — Create assignment rows
+    showStatus('loading', 'Step 3 of 3 — Adding stakeholders...');
+    const shEls = document.querySelectorAll('[id^="sh-row-"]');
+    for (const el of shEls) {
+      const rowId = parseInt(el.id.replace('sh-row-', ''));
+      const row = stakeholderRows.find(r => r.id === rowId);
+      const role = document.getElementById(`sh-role-${rowId}`)?.value;
+      const survey = document.getElementById(`sh-survey-${rowId}`)?.checked;
+      if (!row?.selectedStakeholder) continue;
+      await createItem(CONFIG.lists.assignments, {
+        Title: name,
+        StakeholderId: row.selectedStakeholder,
+        ProjectId: deliverableId,
+        StakeholderRole: role || '',
+        IncludeInSurvey: survey !== false,
+      }, digest);
+    }
+
+    showStatus('success', `✓ Deliverable "${name}" created successfully with ${ownerEls.length} owner(s) and ${shEls.length} stakeholder(s). You can now close this page or add another deliverable.`);
+    resetForm();
+
+  } catch (err) {
+    showStatus('error', 'Something went wrong: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    label.textContent = 'Create deliverable';
+  }
+}
+
+function resetForm() {
+  document.getElementById('del-name').value = '';
+  document.getElementById('del-sap').value = '';
+  document.getElementById('del-type').value = '';
+  document.getElementById('del-active').checked = true;
+  document.getElementById('owners-list').innerHTML = '';
+  document.getElementById('stakeholders-list').innerHTML = '';
+  ownerRows = [];
+  stakeholderRows = [];
+  ownerCounter = 0;
+  shCounter = 0;
+}
+
+function showStatus(type, msg) {
+  const el = document.getElementById('status');
+  el.className = `status ${type}`;
+  el.textContent = msg;
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escJs(s) { return String(s).replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+loadReferenceData();
+addOwnerRow();
+addStakeholderRow();
+</script>
+</body>
+</html>
