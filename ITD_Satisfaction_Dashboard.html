@@ -520,6 +520,7 @@ async function fetchList(listName, select = '', filter = '', expand = '') {
   if (expand) url += `&$expand=${expand}`;
 
   const res = await fetch(url, {
+    credentials: 'include',
     headers: { 'Accept': 'application/json;odata=verbose' }
   });
   if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}\nURL: ${url}`);
